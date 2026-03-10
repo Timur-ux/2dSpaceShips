@@ -49,7 +49,7 @@
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -233,7 +233,7 @@
                     "name": "",
                     "id": "618af088-8804-4a54-9f67-7f8ecd09534e",
                     "path": "<Keyboard>/space",
-                    "interactions": "",
+                    "interactions": "SlowTap",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "Jump",
@@ -244,7 +244,7 @@
                     "name": "",
                     "id": "f89961e8-a798-45a0-b19c-f83aa61c7783",
                     "path": "<Keyboard>/ctrl",
-                    "interactions": "",
+                    "interactions": "Tap",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "Crouch",
