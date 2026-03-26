@@ -6,9 +6,9 @@ PhysicsMaterial2D:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PhysMat_Bouncy
+  m_Name: PhysMat_Player
   serializedVersion: 2
-  friction: 0.4
-  bounciness: 1
+  friction: 6
+  bounciness: 0.1
   m_FrictionCombine: 1
   m_BounceCombine: 4

@@ -27,8 +27,8 @@ public class PlayerController : MonoBehaviour {
 		var childAnimators = GetComponentsInChildren<Animator>(true);
 		animators_ = new Animator[1 + childAnimators.Length];
 		animators_[0] = GetComponent<Animator>();
-		for(int i = 0; i < childAnimators.Length; ++i)
-			animators_[i+1] = childAnimators[i];
+		for (int i = 0; i < childAnimators.Length; ++i)
+			animators_[i + 1] = childAnimators[i];
 	}
 
 	public void OnMove(InputAction.CallbackContext context) {
@@ -45,7 +45,7 @@ public class PlayerController : MonoBehaviour {
 
 	public void OnFire(InputAction.CallbackContext context) {
 		if (context.ReadValueAsButton())
-			foreach(var animator in animators_)
+			foreach (var animator in animators_)
 				animator.SetTrigger("Attack");
 	}
 
@@ -103,6 +103,8 @@ public class PlayerController : MonoBehaviour {
 		if (direction_ != Vector2.zero && state_ == State.OnGround &&
 						rb_.linearVelocity.magnitude < maxVelocity)
 			rb_.AddForce(direction_ * moveForce);
+		if (state_ == State.InSpace && direction_ != Vector2.zero && rb_.linearVelocity == Vector2.zero)
+			rb_.AddForce((direction_ + Vector2.up) * moveForce);
 
 		stateUpdateIfNeeded();
 	}
