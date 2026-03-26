@@ -41,9 +41,6 @@ public class PlayerController : MonoBehaviour {
 		localScale.x = lookDirection_.x > 0 ? -1 : 1;
 
 		transform.localScale = localScale;
-		bool isWalk = context.ReadValue<Vector2>() != Vector2.zero;
-		animators_[0].SetBool("IsWalk", isWalk);
-		Debug.Log("IsWalk: " + isWalk);
 	}
 
 	public void OnFire(InputAction.CallbackContext context) {
@@ -58,6 +55,8 @@ public class PlayerController : MonoBehaviour {
 
 		rb_.AddForce(Vector2.up * jumpForce);
 		state_ = State.InSpace;
+		animators_[0].SetTrigger("Jump");
+		animators_[0].SetBool("InSpace", true);
 	}
 
 	public void OnCrouch(InputAction.CallbackContext context) {
@@ -82,13 +81,18 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	void stateUpdateIfNeeded() {
+		State oldState = state_;
 		RaycastHit2D hitData =
-						Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity,
+						Physics2D.Raycast(downRay.transform.position, Vector2.down, Mathf.Infinity,
 																								LayerMask.GetMask("Ground"));
-		if (hitData.collider != null && hitData.distance < 1.25f)
+		Debug.DrawRay(downRay.transform.position, Vector2.down * hitData.distance);
+		if (hitData.collider != null && hitData.distance < 0.2f)
 			state_ = State.OnGround;
 		else
 			state_ = State.InSpace;
+
+		animators_[0].SetBool("InSpace", state_ == State.InSpace);
+		animators_[0].SetBool("IsWalk", (direction_ != Vector2.zero) && (state_ == State.OnGround));
 	}
 
 	void OnCollisionEnter2D(Collision2D collisiton) { stateUpdateIfNeeded(); }
@@ -96,7 +100,7 @@ public class PlayerController : MonoBehaviour {
 	void OnCollisionExit2D(Collision2D collisiton) { stateUpdateIfNeeded(); }
 
 	void Update() {
-		if (direction_ != Vector2.zero &&
+		if (direction_ != Vector2.zero && state_ == State.OnGround &&
 						rb_.linearVelocity.magnitude < maxVelocity)
 			rb_.AddForce(direction_ * moveForce);
 
