@@ -1,9 +1,11 @@
 using System;
+using UnityEngine;
+
 namespace WaveFunctionCollapse {
-	using BitMask = int;
+	using BitMask = System.Int32;
 	// Tile consist of 4x4 points each can be used by wall or platform or be clear
 	// Used for map generation by wave function collapse algo
-	public class Tile {
+	public class Tile : ScriptableObject {
 		public enum Side {
 			up0 = 1, // up side left to right
 			up1 = 1 << 1,
@@ -22,7 +24,7 @@ namespace WaveFunctionCollapse {
 			left2 = 1 << 14,
 			left3 = 1 << 15,
 		};
-		public enum SideMask {
+		public enum SideMask : System.Int32 {
 			up = Side.up0 | Side.up1 | Side.up2 | Side.up2,
 			right = Side.right0 | Side.right1 | Side.right2 | Side.right2,
 			down = Side.down0 | Side.down1 | Side.down2 | Side.down2,
@@ -30,7 +32,7 @@ namespace WaveFunctionCollapse {
 		}
 
 		// Offset needed to shift SideMask at the begin of the mask
-		private enum SideOffset {
+		private enum SideOffset : System.Int32 {
 			up = 0,
 			right = 4,
 			down = 8,
@@ -40,50 +42,60 @@ namespace WaveFunctionCollapse {
 		public struct Coord {
 			public int x; // from left to right
 			public int y; // from top to bottom
+			public Coord(int y_, int x_) {
+				x = x_;
+				y = y_;
+			}
+
 			public BitMask AsOffset() {
 				return 1 << (y * 4 + x);
 			}
-		};
 
-		private BitMask usedSides_ = 0;
-		private BitMask usedCells_ = 0;
+			static public bool operator ==(Coord lhs, Coord rhs) {
+				return lhs.x == rhs.x && lhs.y == rhs.y;
+			}
+
+			static public bool operator !=(Coord lhs, Coord rhs) {
+				return lhs.x != rhs.x || lhs.y != rhs.y;
+			}
+		};
 
 		private Coord SideToCoord(Side side) {
 			switch (side) {
 				case Side.up0:
-					return Coord(0, 0);
+					return new Coord(0, 0);
 				case Side.up1:
-					return Coord(0, 1);
+					return new Coord(0, 1);
 				case Side.up2:
-					return Coord(0, 2);
+					return new Coord(0, 2);
 				case Side.up3:
-					return Coord(0, 3);
+					return new Coord(0, 3);
 				case Side.right0:
-					return Coord(0, 3);
+					return new Coord(0, 3);
 				case Side.right1:
-					return Coord(1, 3);
+					return new Coord(1, 3);
 				case Side.right2:
-					return Coord(2, 3);
+					return new Coord(2, 3);
 				case Side.right3:
-					return Coord(3, 3);
+					return new Coord(3, 3);
 				case Side.down0:
-					return Coord(3, 3);
+					return new Coord(3, 3);
 				case Side.down1:
-					return Coord(3, 2);
+					return new Coord(3, 2);
 				case Side.down2:
-					return Coord(3, 1);
+					return new Coord(3, 1);
 				case Side.down3:
-					return Coord(3, 0);
+					return new Coord(3, 0);
 				case Side.left0:
-					return Coord(3, 0);
+					return new Coord(3, 0);
 				case Side.left1:
-					return Coord(2, 0);
+					return new Coord(2, 0);
 				case Side.left2:
-					return Coord(1, 0);
+					return new Coord(1, 0);
 				case Side.left3:
-					return Coord(0, 0);
+					return new Coord(0, 0);
 			}
-			throw ArgumentOutOfRangeException;
+			throw new ArgumentOutOfRangeException("side");
 		}
 
 		public void Connect(Side sFrom, Side sTo) {
@@ -106,34 +118,36 @@ namespace WaveFunctionCollapse {
 			// Update used sides
 			Coord c = new Coord(0, 0);
 			for (int i = 0; i < 4; ++i, ++c.x)
-				if (usedCells_ & c.AsOffset())
-					usedSides_ |= (Side.up0 << i);
+				if ((usedCells_ & c.AsOffset()) != 0)
+					usedSides_ |= ((System.Int32)Side.up0 << i);
 			for (int i = 0; i < 4; ++i, ++c.y)
-				if (usedCells_ & c.AsOffset())
-					usedSides_ |= (Side.left0 << i);
+				if ((usedCells_ & c.AsOffset()) != 0)
+					usedSides_ |= ((System.Int32)Side.left0 << i);
 			for (int i = 0; i < 4; ++i, --c.x)
-				if (usedCells_ & c.AsOffset())
-					usedSides_ |= (Side.down0 << i);
+				if ((usedCells_ & c.AsOffset()) != 0)
+					usedSides_ |= ((System.Int32)Side.down0 << i);
 			for (int i = 0; i < 4; ++i, --c.y)
-				if (usedCells_ & c.AsOffset())
-					usedSides_ |= (Side.left0 << i);
+				if ((usedCells_ & c.AsOffset()) != 0)
+					usedSides_ |= ((System.Int32)Side.left0 << i);
 		}
 
 		public BitMask UsedSide(SideMask side) {
-			return usedSides_ & side;
+			return usedSides_ & ((System.Int32)side);
 		}
 
 		private BitMask SideWithOffset(BitMask mask, SideMask side) {
+			System.Int32 mask_ = (System.Int32)mask;
 			switch (side) {
 				case SideMask.up:
-					return mask >> SideOffset.up;
+					return mask_ >> ((System.Int32)SideOffset.up);
 				case SideMask.right:
-					return mask >> SideOffset.right;
+					return mask_ >> ((System.Int32)SideOffset.right);
 				case SideMask.down:
-					return mask >> SideOffset.down;
+					return mask_ >> ((System.Int32)SideOffset.down);
 				case SideMask.left:
-					return mask >> SideOffset.left;
+					return mask_ >> ((System.Int32)SideOffset.left);
 			}
+			throw new ArgumentOutOfRangeException("side");
 		}
 
 		public enum ConnectDirection {
@@ -146,7 +160,7 @@ namespace WaveFunctionCollapse {
 		// Connect direction is relative from this tile to other tile
 		// Connection allowed if connection side identical
 		public bool CanConnectTo(ref Tile tile, ConnectDirection relativeDirection) {
-			SideMask maskThis, maskOther;
+			SideMask maskThis = SideMask.up, maskOther = SideMask.up;
 			switch (relativeDirection) {
 				case ConnectDirection.FromBottomToTop:
 					maskThis = SideMask.up;
@@ -165,8 +179,8 @@ namespace WaveFunctionCollapse {
 					maskOther = SideMask.right;
 					break;
 			}
-			BitMask usedSideThis = this.UsedSide(maskThis);
-			BitMask usedSideOther = this.UsedSide(maskOther);
+			BitMask usedSideThis = UsedSide(maskThis);
+			BitMask usedSideOther = tile.UsedSide(maskOther);
 			if (usedSideThis == 0 || usedSideOther == 0)
 				return true; // one of sides is empty -- allowed
 
@@ -180,5 +194,47 @@ namespace WaveFunctionCollapse {
 					return false;
 			return true;
 		}
+
+		public Tile(Tile other) {
+			usedSides_ = other.usedSides_;
+			usedCells_ = other.usedCells_;
+		}
+		public Tile() {}
+
+		public void CreateInstance(int x0, int y0, int z0, GameObject cube) {
+			Coord coord = new Coord(0, 0);
+			for(int i = 0; i < 4; ++i) {
+				for(int j = 0; j < 4; ++j) {
+					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
+					++coord.x;
+					if(isUsed)
+						Instantiate(cube, new Vector3(x0 + coord.x, y0 + coord.y, z0), Quaternion.identity);
+				}
+				++coord.y;
+				coord.x = 0;
+			}
+		}
+
+		public void print() {
+			string message = "\n";
+			Coord coord = new Coord(0, 0);
+			for(int i = 0; i < 4; ++i) {
+				for(int j = 0; j < 4; ++j) {
+					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
+					++coord.x;
+					if(isUsed)
+						message += "x";
+					else
+						message += "o";
+				}
+				++coord.y;
+				coord.x = 0;
+				message += "\n";
+			}
+			Debug.Log(message);
+		}
+
+		private BitMask usedSides_ = 0;
+		private BitMask usedCells_ = 0;
 	};
 };
