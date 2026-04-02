@@ -13,8 +13,8 @@ public class PlayerController : MonoBehaviour {
 	State state_ = State.OnGround;
 	Animator[] animators_;
 
-	public float moveForce = 10f;
-	public float jumpForce = 400f;
+	public float moveForce = 400f;
+	public float jumpForce = 2000f;
 	public float maxVelocity = 5f;
 
 	public Sprite crouchSprite, defaultSprite;

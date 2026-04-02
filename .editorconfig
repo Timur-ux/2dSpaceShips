@@ -1,0 +1,4 @@
+[*.cs]
+# Change the severity of a specific warning
+dotnet_diagnostic.CS0436.severity = none
+

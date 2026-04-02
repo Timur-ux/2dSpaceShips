@@ -159,7 +159,7 @@ namespace WaveFunctionCollapse {
 		}
 		// Connect direction is relative from this tile to other tile
 		// Connection allowed if connection side identical
-		public bool CanConnectTo(ref Tile tile, ConnectDirection relativeDirection) {
+		public bool CanConnectTo(Tile tile, ConnectDirection relativeDirection) {
 			SideMask maskThis = SideMask.up, maskOther = SideMask.up;
 			switch (relativeDirection) {
 				case ConnectDirection.FromBottomToTop:
@@ -200,6 +200,14 @@ namespace WaveFunctionCollapse {
 			usedCells_ = other.usedCells_;
 		}
 		public Tile() {}
+		public Tile(Side sFrom, Side sTo) {
+			Connect(sFrom, sTo);
+		}
+		public void Init(Side sFrom, Side sTo) {
+			usedSides_ = 0;
+			usedCells_ = 0;
+			Connect(sFrom, sTo);
+		}
 
 		public void CreateInstance(int x0, int y0, int z0, GameObject cube) {
 			Coord coord = new Coord(0, 0);
