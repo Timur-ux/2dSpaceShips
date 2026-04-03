@@ -209,18 +209,22 @@ namespace WaveFunctionCollapse {
 			Connect(sFrom, sTo);
 		}
 
-		public void CreateInstance(int x0, int y0, int z0, GameObject cube) {
+		public void CreateInstance(int x0, int y0, int z0, GameObject cube, GameObject anchor) {
 			Coord coord = new Coord(0, 0);
 			for(int i = 0; i < 4; ++i) {
 				for(int j = 0; j < 4; ++j) {
+					GameObject obj = cube;
+					if((i == 0 && j == 0) || (i == 3 && j == 0) || (i == 0 && j == 3) || (i == 3 && j == 3))
+						obj = anchor;
 					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
 					++coord.x;
-					if(isUsed)
-						Instantiate(cube, new Vector3(x0 + coord.x, y0 + coord.y, z0), Quaternion.identity);
+					if(isUsed || obj == anchor)
+						Instantiate(obj, new Vector3(x0 * 4 + coord.x, y0 * 4 + coord.y, z0), Quaternion.identity);
 				}
 				++coord.y;
 				coord.x = 0;
 			}
+			Debug.Log($"Created at x = {x0}, y = {y0}");
 		}
 
 		public void print() {
