@@ -16,6 +16,13 @@ namespace WaveFunctionCollapse {
 
 		private void PlaceTile(Tile tile, int i, int j) {
 			tiles_[i, j] = tile;
+			tile.print();
+			if(borderMarkers_[i, j] != null) {
+				Destroy(borderMarkers_[i, j]);
+				borderMarkers_[i, j] = null;
+			}
+			if(borderTiles_[i, j] != null)
+				borderTiles_[i, j] = null;
 			PlaceOrUpdateBorder(i + 1, j);
 			PlaceOrUpdateBorder(i - 1, j);
 			PlaceOrUpdateBorder(i, j + 1);
@@ -44,6 +51,7 @@ namespace WaveFunctionCollapse {
 			if (borderTiles_[i, j] == null) {
 				border = new BorderData();
 				borderMarkers_[i, j] = Instantiate(emptyTileCube, new Vector3(j * 4 + 2, i*4 + 2, 0), Quaternion.identity);
+				Debug.Log($"Create border mark at x = {j} y = {i}");
 			}
 			else
 				border = borderTiles_[i, j];
@@ -70,14 +78,15 @@ namespace WaveFunctionCollapse {
 			foreach (var border in borderTiles_) {
 				if (border == null || border.avaliableConfigurations.Count == 0)
 					continue;
-				minEntropy = minEntropy = Math.Min(minEntropy, Entropy(border));
+				minEntropy = minEntropy = Math.Min(minEntropy, border.Entropy(random));
 			}
+			Debug.Log($"Min entropy {minEntropy}");
 
 			for (int i = 0; i < height; ++i)
 				for (int j = 0; j < width; ++j)
 					if (tiles_[i, j] != null || borderTiles_[i, j] == null)
 						continue;
-					else if (Entropy(borderTiles_[i, j]) <= minEntropy)
+					else if (borderTiles_[i, j].Entropy(random) <= minEntropy)
 						PlaceRandomTile(borderTiles_[i, j], i, j);
 			InstantiateCreatedTiles();
 
@@ -90,15 +99,6 @@ namespace WaveFunctionCollapse {
 
 		private void GenerateMap() {
 			Debug.Log("Map generation not realized yet!");
-		}
-
-		private double Entropy(BorderData data) {
-			int n = data.avaliableConfigurations.Count;
-			double noise = (double)random.Next(0, 100) / 1000;
-			if (n == 0)
-				return 1e9;
-			double p = 1 / (double)n;
-			return -n * p * Math.Log(p) + noise;
 		}
 
 		private void InitTileConfigurations() {
@@ -116,8 +116,8 @@ namespace WaveFunctionCollapse {
 			bottom.Init(Tile.Side.down0, Tile.Side.down3);
 			top.Init(Tile.Side.up0, Tile.Side.up3);
 			for (int x = 1; x < width - 1; ++x) {
-				PlaceTile(new Tile(top), 0, x);
-				PlaceTile(new Tile(bottom), height - 1, x);
+				PlaceTile(top, 0, x);
+				PlaceTile(bottom, height - 1, x);
 			}
 
 			Tile left = ScriptableObject.CreateInstance<Tile>();
@@ -125,22 +125,25 @@ namespace WaveFunctionCollapse {
 			left.Init(Tile.Side.left0, Tile.Side.left3);
 			right.Init(Tile.Side.right0, Tile.Side.right3);
 			for (int y = 1; y < height - 1; ++y) {
-				PlaceTile(new Tile(left), y, 0);
-				PlaceTile(new Tile(right), y, width - 1);
+				PlaceTile(left, y, 0);
+				PlaceTile(right, y, width - 1);
 			}
-			Tile anchor = new Tile();
 
+			Tile anchor = ScriptableObject.CreateInstance<Tile>();
 			anchor.Init(Tile.Side.left0, Tile.Side.up3);
-			PlaceTile(new Tile(anchor), height - 1, width - 1);
+			PlaceTile(anchor, height - 1, width - 1);
 
+			anchor = ScriptableObject.CreateInstance<Tile>();
 			anchor.Init(Tile.Side.up0, Tile.Side.right3);
-			PlaceTile(new Tile(anchor), 0, width - 1);
+			PlaceTile(anchor, 0, width - 1);
 
+			anchor = ScriptableObject.CreateInstance<Tile>();
 			anchor.Init(Tile.Side.right0, Tile.Side.down3);
-			PlaceTile(new Tile(anchor), 0, 0);
+			PlaceTile(anchor, 0, 0);
 
+			anchor = ScriptableObject.CreateInstance<Tile>();
 			anchor.Init(Tile.Side.down0, Tile.Side.left3);
-			PlaceTile(new Tile(anchor), height - 1, 0);
+			PlaceTile(anchor, height - 1, 0);
 		}
 
 		private void InitStartTile() {
@@ -179,9 +182,25 @@ namespace WaveFunctionCollapse {
 		public GameObject emptyTileCube;
 
 		private class BorderData {
+			private double entropy_ = -1;
 			public List<Tile> avaliableConfigurations;
+
 			public BorderData() {
 				avaliableConfigurations = new List<Tile>();
+				entropy_ = -1;
+			}
+
+			public double Entropy(System.Random random) {
+				if(entropy_ != -1)
+					return entropy_;
+
+				int n = avaliableConfigurations.Count;
+				double noise = (double)random.Next(0, 100) / 1000;
+				if (n == 0)
+					return 1e9;
+				double p = 1 / (double)n;
+				entropy_ = -n * p * Math.Log(p) + noise;
+				return entropy_;
 			}
 		};
 
@@ -193,13 +212,32 @@ namespace WaveFunctionCollapse {
 		List<Tile> tileConfigurations_ = new List<Tile>();
 		List<(Tile.Side sFrom, Tile.Side sTo)> tileConnections_ = new List<(Tile.Side sFrom, Tile.Side sTo)> {
 			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.down0, Tile.Side.down3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
+			(Tile.Side.up0, Tile.Side.up3),
 			(Tile.Side.left0, Tile.Side.left3),
 			(Tile.Side.right0, Tile.Side.right3),
-			(Tile.Side.up0, Tile.Side.up3),
-			(Tile.Side.up0, Tile.Side.right3),
-			(Tile.Side.right0, Tile.Side.down3),
-			(Tile.Side.down0, Tile.Side.left3),
-			(Tile.Side.left0, Tile.Side.up3),
+			(Tile.Side.up2, Tile.Side.right1),
+			(Tile.Side.right2, Tile.Side.down1),
+			(Tile.Side.down2, Tile.Side.left1),
+			(Tile.Side.left2, Tile.Side.up1),
 		};
 
 	}

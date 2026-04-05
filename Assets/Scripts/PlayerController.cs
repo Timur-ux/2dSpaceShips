@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour {
 	void OnCollisionExit2D(Collision2D collisiton) { stateUpdateIfNeeded(); }
 
 	void Update() {
-		if (direction_ != Vector2.zero && state_ == State.OnGround &&
+		if (direction_ != Vector2.zero &&
 						rb_.linearVelocity.magnitude < maxVelocity)
 			rb_.AddForce(direction_ * moveForce);
 		if (state_ == State.InSpace && direction_ != Vector2.zero && rb_.linearVelocity == Vector2.zero)

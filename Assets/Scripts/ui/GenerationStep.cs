@@ -18,7 +18,8 @@ public class GenerationStep : MonoBehaviour {
 	private void OnClick(ClickEvent evt) {
 		if(mapGenerator_ != null) {
 			Debug.Log("Starting generation");
-			mapGenerator_.GenerationStep();
+			for(int i = 0; i < 10; ++i) 
+				mapGenerator_.GenerationStep();
 		}
 	}
 };

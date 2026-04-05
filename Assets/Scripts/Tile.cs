@@ -203,6 +203,10 @@ namespace WaveFunctionCollapse {
 		public Tile(Side sFrom, Side sTo) {
 			Connect(sFrom, sTo);
 		}
+		public void Init(Tile other) {
+			usedSides_ = other.usedSides_;
+			usedCells_ = other.usedCells_;
+		}
 		public void Init(Side sFrom, Side sTo) {
 			usedSides_ = 0;
 			usedCells_ = 0;
@@ -214,8 +218,8 @@ namespace WaveFunctionCollapse {
 			for(int i = 0; i < 4; ++i) {
 				for(int j = 0; j < 4; ++j) {
 					GameObject obj = cube;
-					if((i == 0 && j == 0) || (i == 3 && j == 0) || (i == 0 && j == 3) || (i == 3 && j == 3))
-						obj = anchor;
+					// if((i == 0 && j == 0) || (i == 3 && j == 0) || (i == 0 && j == 3) || (i == 3 && j == 3))
+					// 	obj = anchor;
 					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
 					++coord.x;
 					if(isUsed || obj == anchor)
@@ -230,17 +234,14 @@ namespace WaveFunctionCollapse {
 		public void print() {
 			string message = "\n";
 			Coord coord = new Coord(0, 0);
-			for(int i = 0; i < 4; ++i) {
-				for(int j = 0; j < 4; ++j) {
+			for(coord.y = 0; coord.y < 4; ++coord.y) {
+				for(coord.x = 0; coord.x < 4; ++coord.x) {
 					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
-					++coord.x;
 					if(isUsed)
 						message += "x";
 					else
 						message += "o";
 				}
-				++coord.y;
-				coord.x = 0;
 				message += "\n";
 			}
 			Debug.Log(message);
