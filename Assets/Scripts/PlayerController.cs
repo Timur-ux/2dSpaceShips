@@ -6,8 +6,8 @@ public class PlayerController : MonoBehaviour {
 	enum State { OnGround, InSpace };
 	bool crouch = false;
 
-	SpriteRenderer sr_;
 	Rigidbody2D rb_;
+	CapsuleCollider2D collider_;
 	Vector2 direction_;
 	Vector2 lookDirection_;
 	State state_ = State.OnGround;
@@ -17,13 +17,16 @@ public class PlayerController : MonoBehaviour {
 	public float jumpForce = 2000f;
 	public float maxVelocity = 5f;
 
+	public float crouchColliderOffset = -0.5f;
+	public float standColliderOffset = -0.25f;
+
 	public Sprite crouchSprite, defaultSprite;
 
 	public GameObject downRay;
 
 	void Start() {
 		rb_ = GetComponent<Rigidbody2D>();
-		sr_ = GetComponent<SpriteRenderer>();
+		collider_ = GetComponent<CapsuleCollider2D>();
 		var childAnimators = GetComponentsInChildren<Animator>(true);
 		animators_ = new Animator[1 + childAnimators.Length];
 		animators_[0] = GetComponent<Animator>();
@@ -71,8 +74,17 @@ public class PlayerController : MonoBehaviour {
 
 		crouch = newCrouchState;
 		animators_[0].SetBool("IsCrouch", newCrouchState);
-
 		float k = 0.7f;
+		float oldColliderY = collider_.size.y;
+		if(crouch) {
+			collider_.size = new Vector2(collider_.size.x, oldColliderY * k);
+			collider_.offset = new Vector2(collider_.offset.x, crouchColliderOffset);
+		}
+		else {
+			collider_.size = new Vector2(collider_.size.x, oldColliderY / k);
+			collider_.offset = new Vector2(collider_.offset.x, standColliderOffset);
+		}
+
 		if (!crouch)
 			k = 1 / k;
 		jumpForce *= k;

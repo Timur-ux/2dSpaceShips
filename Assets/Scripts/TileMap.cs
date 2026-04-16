@@ -11,18 +11,15 @@ namespace WaveFunctionCollapse {
 		private void InitTileMap() {
 			tiles_ = new Tile[height, width];
 			borderTiles_ = new BorderData[height, width];
-			borderMarkers_ = new GameObject[height, width];
 		}
 
 		private void PlaceTile(Tile tile, int i, int j) {
 			tiles_[i, j] = tile;
-			tile.print();
-			if(borderMarkers_[i, j] != null) {
-				Destroy(borderMarkers_[i, j]);
-				borderMarkers_[i, j] = null;
-			}
-			if(borderTiles_[i, j] != null)
+			tile.CreateInstance(j, i, cubePrefab);
+			if (borderTiles_[i, j] != null) {
 				borderTiles_[i, j] = null;
+				--borders_;
+			}
 			PlaceOrUpdateBorder(i + 1, j);
 			PlaceOrUpdateBorder(i - 1, j);
 			PlaceOrUpdateBorder(i, j + 1);
@@ -50,10 +47,8 @@ namespace WaveFunctionCollapse {
 			BorderData border;
 			if (borderTiles_[i, j] == null) {
 				border = new BorderData();
-				borderMarkers_[i, j] = Instantiate(emptyTileCube, new Vector3(j * 4 + 2, i*4 + 2, 0), Quaternion.identity);
-				Debug.Log($"Create border mark at x = {j} y = {i}");
-			}
-			else
+				++borders_;
+			} else
 				border = borderTiles_[i, j];
 			if (borderTiles_[i, j] != null)
 				border.avaliableConfigurations.Clear();
@@ -69,8 +64,6 @@ namespace WaveFunctionCollapse {
 			Tile tile = data.avaliableConfigurations[choice];
 			PlaceTile(tile, i, j);
 			borderTiles_[i, j] = null;
-			Destroy(borderMarkers_[i, j]);
-			borderMarkers_[i, j] = null;
 		}
 
 		public void GenerationStep() {
@@ -80,7 +73,6 @@ namespace WaveFunctionCollapse {
 					continue;
 				minEntropy = minEntropy = Math.Min(minEntropy, border.Entropy(random));
 			}
-			Debug.Log($"Min entropy {minEntropy}");
 
 			for (int i = 0; i < height; ++i)
 				for (int j = 0; j < width; ++j)
@@ -88,17 +80,46 @@ namespace WaveFunctionCollapse {
 						continue;
 					else if (borderTiles_[i, j].Entropy(random) <= minEntropy)
 						PlaceRandomTile(borderTiles_[i, j], i, j);
-			InstantiateCreatedTiles();
+		}
 
-			int borders = 0;
-			foreach(var border in borderTiles_)
-				if(border != null)
-					borders++;
-			Debug.Log("Remaining borders: " + borders);
+		private bool PlaceTurretIfCan(Tile tile, int i, int j) {
+			for (int x = 0; x < 4; ++x)
+				for (int y = 0; y < 3; ++y)
+					if (tile.IsCellUsed(x, y) && !tile.IsCellUsed(x, y + 1)) {
+						Instantiate(turretPrefab_, new Vector3(j * 4 + x, i * 4 + y, 0), Quaternion.identity);
+						return true;
+					}
+
+			return false;
+		}
+
+		private void PlaceTurrets() {
+			int placedTurrets = 0;
+			int steps = 0;
+			while (placedTurrets < turretsToCreate && steps < maxGenSteps) {
+				++steps;
+				int i = random.Next(0, height - 1);
+				int j = random.Next(0, width - 1);
+				Tile tile = tiles_[i, j];
+				if (tile == null)
+					continue;
+				if(PlaceTurretIfCan(tile, i, j))
+					++placedTurrets;
+			}
+			if (placedTurrets < turretsToCreate)
+				Debug.Log("Not all turrets placed via steps limit reached");
+			else
+				Debug.Log("All turrets placed");
 		}
 
 		private void GenerateMap() {
-			Debug.Log("Map generation not realized yet!");
+			int steps = 0;
+			while (borders_ > 0 && steps < maxGenSteps) {
+				GenerationStep();
+				++steps;
+			}
+			Debug.Log($"Map generation done in {steps} steps. Last borders: {borders_}");
+			PlaceTurrets();
 		}
 
 		private void InitTileConfigurations() {
@@ -157,7 +178,7 @@ namespace WaveFunctionCollapse {
 				for (int x0 = 0; x0 < width; ++x0) {
 					Tile tile = tiles_[y0, x0];
 					if (tile != null)
-						tile.CreateInstance(x0, y0, 0, cubePrefab, cubeAnchor);
+						tile.CreateInstance(x0, y0, cubePrefab);
 				}
 			}
 		}
@@ -178,8 +199,9 @@ namespace WaveFunctionCollapse {
 		public int initX = 10;
 		public int initY = 10;
 		public GameObject cubePrefab;
-		public GameObject cubeAnchor;
-		public GameObject emptyTileCube;
+		public GameObject turretPrefab_;
+		public int turretsToCreate = 0;
+		public int maxGenSteps = 100;
 
 		private class BorderData {
 			private double entropy_ = -1;
@@ -191,7 +213,7 @@ namespace WaveFunctionCollapse {
 			}
 
 			public double Entropy(System.Random random) {
-				if(entropy_ != -1)
+				if (entropy_ != -1)
 					return entropy_;
 
 				int n = avaliableConfigurations.Count;
@@ -207,7 +229,7 @@ namespace WaveFunctionCollapse {
 		System.Random random = new System.Random();
 		Tile[,] tiles_;
 		BorderData[,] borderTiles_;
-		GameObject[,] borderMarkers_;
+		int borders_ = 0;
 
 		List<Tile> tileConfigurations_ = new List<Tile>();
 		List<(Tile.Side sFrom, Tile.Side sTo)> tileConnections_ = new List<(Tile.Side sFrom, Tile.Side sTo)> {
@@ -239,6 +261,5 @@ namespace WaveFunctionCollapse {
 			(Tile.Side.down2, Tile.Side.left1),
 			(Tile.Side.left2, Tile.Side.up1),
 		};
-
 	}
 };
