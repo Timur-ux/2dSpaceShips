@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 
 public class PlayerController : MonoBehaviour {
@@ -16,8 +17,11 @@ public class PlayerController : MonoBehaviour {
 	public float moveForce = 400f;
 	public float jumpForce = 2000f;
 	public float maxVelocity = 5f;
+	public float attackDamage = 50;
+	public float attackForce = 5;
 
 	public float crouchColliderOffset = -0.5f;
+	public float jumpColliderOffset = 0.1f;
 	public float standColliderOffset = -0.25f;
 
 	public Sprite crouchSprite, defaultSprite;
@@ -50,6 +54,7 @@ public class PlayerController : MonoBehaviour {
 		if (context.ReadValueAsButton())
 			foreach (var animator in animators_)
 				animator.SetTrigger("Attack");
+		attackTime_ = attackSpan_;
 	}
 
 	public void OnJump(InputAction.CallbackContext context) {
@@ -58,6 +63,7 @@ public class PlayerController : MonoBehaviour {
 
 		rb_.AddForce(Vector2.up * jumpForce);
 		state_ = State.InSpace;
+		collider_.offset = new Vector2(collider_.offset.x, jumpColliderOffset);
 		animators_[0].SetTrigger("Jump");
 		animators_[0].SetBool("InSpace", true);
 	}
@@ -95,13 +101,16 @@ public class PlayerController : MonoBehaviour {
 	void stateUpdateIfNeeded() {
 		State oldState = state_;
 		RaycastHit2D hitData =
-						Physics2D.Raycast(downRay.transform.position, Vector2.down, Mathf.Infinity,
-																								LayerMask.GetMask("Ground"));
-		Debug.DrawRay(downRay.transform.position, Vector2.down * hitData.distance);
-		if (hitData.collider != null && hitData.distance < 0.2f)
+						Physics2D.Raycast(downRay.transform.position, Vector2.down, Mathf.Infinity, ~LayerMask.GetMask("Player"));
+		if (hitData.collider != null && hitData.distance < 0.2f) {
 			state_ = State.OnGround;
-		else
+			collider_.offset = new Vector2(collider_.offset.x, standColliderOffset);
+		}
+		else {
 			state_ = State.InSpace;
+			if(!crouch)
+				collider_.offset = new Vector2(collider_.offset.x, jumpColliderOffset);
+		}
 
 		animators_[0].SetBool("InSpace", state_ == State.InSpace);
 		animators_[0].SetBool("IsWalk", (direction_ != Vector2.zero) && (state_ == State.OnGround));
@@ -118,6 +127,29 @@ public class PlayerController : MonoBehaviour {
 		if (state_ == State.InSpace && direction_ != Vector2.zero && rb_.linearVelocity == Vector2.zero)
 			rb_.AddForce((direction_ + Vector2.up) * moveForce);
 
+		if(attackTime_ > 0)
+			attackTime_ -= Time.deltaTime;
 		stateUpdateIfNeeded();
+	}
+
+	private string EnemyTag_ = "New tag"; // I can't set name to enemy tag other than default
+	private List<EntityId> hittedEntities_;
+	private float attackTime_ = 0;
+	private float attackSpan_ = 1;
+
+	void OnTriggerEnter2D(Collider2D other) {
+		if(!other.CompareTag(EnemyTag_) || attackTime_ <= 0)
+			return;
+		EntityId otherId = other.GetEntityId();
+		foreach(var id in hittedEntities_)
+			if(id == otherId)
+				return;
+
+		if(other.TryGetComponent<TurretController>(out TurretController turret)) {
+			turret.TakeDamage(attackDamage);
+			hittedEntities_.Add(otherId);
+		}
+		if(other.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
+			rb.AddForce(direction_ * attackForce);
 	}
 }

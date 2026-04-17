@@ -171,6 +171,11 @@ namespace WaveFunctionCollapse {
 			Tile initTile = ScriptableObject.CreateInstance<Tile>();
 			initTile.Init(Tile.Side.down0, Tile.Side.down3);
 			PlaceTile(initTile, initY, initX);
+			PlaceTile(initTile, initY, initX-1);
+			PlaceTile(initTile, initY, initX+1);
+			PlaceTile(initTile, initY+1, initX);
+			PlaceTile(initTile, initY+1, initX-1);
+			PlaceTile(initTile, initY+1, initX+1);
 		}
 
 		private void InstantiateCreatedTiles() {
