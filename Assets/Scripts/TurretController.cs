@@ -10,30 +10,33 @@ public class TurretController : MonoBehaviour {
 	Direction dir_ = Direction.Right;
 	SpriteRenderer sprite_;
 	private float damagedDelay = 0;
-	public float damagedSpan_ = 1;
+	public float damagedSpan_ = 0.5f;
+
+	private Color oldColor;
 
 	public float health = 100;
 	public void TakeDamage(float amount) {
 		damagedDelay = damagedSpan_;
+		oldColor = sprite_.color;
 		sprite_.color = Color.red;
 		health -= amount;
+		Debug.Log($"Taking damage. Position: {transform.position.ToString()}. Health lasted: {health}");
 		if(health <= 0)
-			Destroy(this, 0.5f);
+			Destroy(gameObject, 0.5f);
+			
 	}
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start() {
 		animator_ = GetComponent<Animator>();
 		rb_ = GetComponent<Rigidbody2D>();
+		sprite_ = GetComponent<SpriteRenderer>();
 	}
 
-	void OnTriggerEnter2D(Collider2D other) {
-	}
-
-	void OnTriggerStay2D(Collider2D other) {
+	public void OnTriggerStay2D_(Collider2D other) {
 		if (!other.CompareTag("Player"))
 			return;
 		Vector2 dist = (other.transform.position - transform.position);
-		RaycastHit2D hitData = Physics2D.Raycast(transform.position, dist.normalized, dist.magnitude * 2, ~LayerMask.GetMask("Enemy", "PlayerAttack"));
+		RaycastHit2D hitData = Physics2D.Raycast(transform.position, dist.normalized, dist.magnitude * 2, ~LayerMask.GetMask("Enemy", "Triggers"));
 		bool playerVisible = false;
 		if (hitData.collider != null && hitData.collider == other)
 			playerVisible = true;
@@ -61,14 +64,13 @@ public class TurretController : MonoBehaviour {
 		}
 	}
 
-	void OnTriggerExit2D(Collider2D other) {
+	public void OnTriggerExit2D_(Collider2D other) {
 		if (!other.CompareTag("Player"))
 			return;
 		if (animator_.GetBool("IsOpen")) {
 			animator_.SetTrigger("EnemyNotInRange");
 			animator_.SetBool("IsOpen", false);
 		}
-		Debug.Log("Player undetected");
 	}
 
 
@@ -77,7 +79,7 @@ public class TurretController : MonoBehaviour {
 		if(damagedDelay > 0) {
 			damagedDelay -= Time.deltaTime;
 			if(damagedDelay <= 0)
-				sprite_.color = Color.clear;
+				sprite_.color = oldColor;
 		}
 	}
 }

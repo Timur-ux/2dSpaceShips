@@ -83,14 +83,12 @@ namespace WaveFunctionCollapse {
 		}
 
 		private bool PlaceTurretIfCan(Tile tile, int i, int j) {
-			for (int x = 0; x < 4; ++x)
-				for (int y = 0; y < 3; ++y)
-					if (tile.IsCellUsed(x, y) && !tile.IsCellUsed(x, y + 1)) {
-						Instantiate(turretPrefab_, new Vector3(j * 4 + x, i * 4 + y, 0), Quaternion.identity);
-						return true;
-					}
-
-			return false;
+			for (int x = 1; x < 3; ++x)
+				if (!(tile.IsCellUsed(x, 0) && !tile.IsCellUsed(x, 1))) {
+					return false;
+			}
+			Instantiate(turretPrefab_, new Vector3(j * 4 + 1, i * 4 + 1, 0), Quaternion.identity);
+			return true;
 		}
 
 		private void PlaceTurrets() {
