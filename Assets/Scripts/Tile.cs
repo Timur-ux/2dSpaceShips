@@ -217,14 +217,14 @@ namespace WaveFunctionCollapse {
 			Connect(sFrom, sTo);
 		}
 
-		public void CreateInstance(int x0, int y0, GameObject cube) {
+		public void CreateInstance(int x0, int y0, GameObject cube, GameObject parent) {
 			Coord coord = new Coord(0, 0);
 			for(int i = 0; i < 4; ++i) {
 				for(int j = 0; j < 4; ++j) {
 					bool isUsed = (((uint)usedCells_) & ((uint)coord.AsOffset())) != 0;
 					++coord.x;
 					if(isUsed)
-						Instantiate(cube, new Vector3(x0 * 4 + coord.x, y0 * 4 + coord.y, 0), Quaternion.identity);
+						Instantiate(cube, new Vector3(x0 * 4 + coord.x, y0 * 4 + coord.y, 0), Quaternion.identity, parent.transform);
 				}
 				++coord.y;
 				coord.x = 0;

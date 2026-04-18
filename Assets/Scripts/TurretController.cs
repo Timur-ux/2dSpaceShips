@@ -11,6 +11,7 @@ public class TurretController : MonoBehaviour {
 	SpriteRenderer sprite_;
 	private float damagedDelay = 0;
 	public float damagedSpan_ = 0.5f;
+	public GameObject onDestroyEventObject;
 
 	private Color oldColor;
 
@@ -21,9 +22,12 @@ public class TurretController : MonoBehaviour {
 		sprite_.color = Color.red;
 		health -= amount;
 		Debug.Log($"Taking damage. Position: {transform.position.ToString()}. Health lasted: {health}");
-		if(health <= 0)
+		if (health <= 0) {
+			if (onDestroyEventObject.TryGetComponent<EventOnEnemyDestroed>(out EventOnEnemyDestroed onEnemyDestoed))
+				onEnemyDestoed.OnEnemyDestoed.Invoke();
 			Destroy(gameObject, 0.5f);
-			
+		}
+
 	}
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start() {
@@ -36,7 +40,7 @@ public class TurretController : MonoBehaviour {
 		if (!other.CompareTag("Player"))
 			return;
 		Vector2 dist = (other.transform.position - transform.position);
-		RaycastHit2D hitData = Physics2D.Raycast(transform.position, dist.normalized, dist.magnitude * 2, ~LayerMask.GetMask("Enemy", "Triggers"));
+		RaycastHit2D hitData = Physics2D.Raycast(transform.position, dist.normalized, dist.magnitude * 2, ~LayerMask.GetMask("Enemy", "Trigger"));
 		bool playerVisible = false;
 		if (hitData.collider != null && hitData.collider == other)
 			playerVisible = true;
@@ -76,9 +80,9 @@ public class TurretController : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update() {
-		if(damagedDelay > 0) {
+		if (damagedDelay > 0) {
 			damagedDelay -= Time.deltaTime;
-			if(damagedDelay <= 0)
+			if (damagedDelay <= 0)
 				sprite_.color = oldColor;
 		}
 	}

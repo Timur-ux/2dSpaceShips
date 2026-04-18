@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 
 public class PlayerController : MonoBehaviour {
@@ -15,6 +16,7 @@ public class PlayerController : MonoBehaviour {
 	Animator[] animators_;
 
 	PlayerAttack attack_;
+	public UnityEvent onLevelUp;
 
 	public float moveForce = 400f;
 	public float jumpForce = 2000f;
@@ -58,7 +60,7 @@ public class PlayerController : MonoBehaviour {
 	public void OnFire(InputAction.CallbackContext context) {
 		if (!context.ReadValueAsButton())
 			return;
-		 
+
 		foreach (var animator in animators_)
 			animator.SetTrigger("Attack");
 		attackTime_ = attackSpan_;
@@ -147,6 +149,18 @@ public class PlayerController : MonoBehaviour {
 	private List<EntityId> hittedEntities_ = new List<EntityId>();
 	private float attackTime_ = 0;
 	private float attackSpan_ = 1;
+	private float currentExp = 0;
+	private float expToLevelUp = 100;
+
+	public void OnEnemyDestroed() {
+		Debug.Log("Enemy destroed!");
+		currentExp += 100;
+		if (currentExp < expToLevelUp)
+			return;
+		onLevelUp.Invoke();
+		currentExp = 0;
+		expToLevelUp *= 2;
+	}
 
 	public void OnTriggerEnter2D_(Collider2D other) {
 		if (!other.CompareTag(EnemyTag_) || attackTime_ <= 0)

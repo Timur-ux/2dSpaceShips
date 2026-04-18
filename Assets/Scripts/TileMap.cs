@@ -15,7 +15,7 @@ namespace WaveFunctionCollapse {
 
 		private void PlaceTile(Tile tile, int i, int j) {
 			tiles_[i, j] = tile;
-			tile.CreateInstance(j, i, cubePrefab);
+			tile.CreateInstance(j, i, cubePrefab, mapParent);
 			if (borderTiles_[i, j] != null) {
 				borderTiles_[i, j] = null;
 				--borders_;
@@ -87,7 +87,9 @@ namespace WaveFunctionCollapse {
 				if (!(tile.IsCellUsed(x, 0) && !tile.IsCellUsed(x, 1))) {
 					return false;
 			}
-			Instantiate(turretPrefab_, new Vector3(j * 4 + 1, i * 4 + 1, 0), Quaternion.identity);
+			GameObject turret = Instantiate(turretPrefab, new Vector3(j * 4 + 1, i * 4 + 1, 0), Quaternion.identity, enemyParent.transform);
+			if(turret.TryGetComponent<TurretController>(out TurretController controller)) 
+				controller.onDestroyEventObject = OnDestroyEnemyEvent;
 			return true;
 		}
 
@@ -181,7 +183,7 @@ namespace WaveFunctionCollapse {
 				for (int x0 = 0; x0 < width; ++x0) {
 					Tile tile = tiles_[y0, x0];
 					if (tile != null)
-						tile.CreateInstance(x0, y0, cubePrefab);
+						tile.CreateInstance(x0, y0, cubePrefab, mapParent);
 				}
 			}
 		}
@@ -202,7 +204,10 @@ namespace WaveFunctionCollapse {
 		public int initX = 10;
 		public int initY = 10;
 		public GameObject cubePrefab;
-		public GameObject turretPrefab_;
+		public GameObject turretPrefab;
+		public GameObject mapParent;
+		public GameObject enemyParent;
+		public GameObject OnDestroyEnemyEvent;
 		public int turretsToCreate = 0;
 		public int maxGenSteps = 100;
 

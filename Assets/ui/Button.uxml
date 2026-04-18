@@ -1,8 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
-        xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
-        noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement style="flex-grow: 1;">
-        <ui:Button text="Generation step" display-tooltip-when-elided="true" name="GenerationStep"/>
-    </ui:VisualElement>
+xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
+noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+	<ui:VisualElement style="background-color: grey; padding: 10px; display: flex; flex-direction: row">
+		<ui:Label text="LEVEL UP! PICK ENCHANCEMENT!"/>
+		<ui:Button text="Attack +30%" display-tooltip-when-elided="true" name="AttackUp" style="width: 20%"/>
+		<ui:Button text="Speed +30%" display-tooltip-when-elided="true" name="SpeedUp" style="width: 20%"/>
+		<ui:Button text="Health +30%" display-tooltip-when-elided="true" name="HealthUp" style="width: 20%"/>
+	</ui:VisualElement>
 </ui:UXML>
 
